@@ -1396,6 +1396,25 @@ is divided into following sections:
                     </customize>
                 </scalaProject1:debug>
             </target>
+            
+            <target name="-debug-start-debuggee-scalatest">
+                <xsl:attribute name="if">have.tests</xsl:attribute>
+                <xsl:attribute name="depends">init,compile-test</xsl:attribute>
+                <fail unless="test.class">Must select one file in the IDE or set test.class</fail>
+                <scalaProject1:debug classname="org.scalatest.tools.Runner" classpath="${{debug.test.classpath}}">
+                    <customize>
+                        <arg value="-s" />
+                        <arg value="${{test.class}}"/>
+                        <arg value="-o" />
+                        <arg value="-g" />
+                    </customize>
+                </scalaProject1:debug>
+            </target>
+            
+            <target name="debug-scalatest">
+                <xsl:attribute name="depends">init,-do-not-recompile,compile-test-single,-debug-start-debugger-test,-debug-start-debuggee-scalatest</xsl:attribute>
+            </target>
+            
 
             <target name="-debug-start-debugger-test">
                 <xsl:attribute name="if">netbeans.home+have.tests</xsl:attribute>

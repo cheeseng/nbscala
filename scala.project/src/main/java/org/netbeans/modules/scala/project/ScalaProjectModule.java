@@ -73,4 +73,11 @@ public class ScalaProjectModule {
                 NbBundle.getMessage(ScalaProjectModule.class, "LBL_DebugTestFile_Action"), // NOI18N
                 null);
     }
+    
+    public static Action debugScalaTest() {
+        return FileSensitiveActions.fileCommandAction(
+                J2SEActionProvider.COMMAND_RUN_SCALATEST_FILE,
+                NbBundle.getMessage(ScalaProjectModule.class, "LBL_DebugScalaTestFile_Action"), // NOI18N
+                null);
+    }
 }

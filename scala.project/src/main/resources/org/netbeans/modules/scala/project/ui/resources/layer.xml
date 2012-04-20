@@ -67,6 +67,11 @@ made subject to such option by the copyright holder.
                         <attr name="position" intvalue="570"/>
                         <attr name="misplaced.action.allowed" boolvalue="true"/>
                     </file>
+                    <file name="RunScalaTestFile.instance">
+                        <attr name="instanceCreate" methodvalue="org.netbeans.modules.scala.project.ScalaProjectModule.debugScalaTest"/>
+                        <attr name="position" intvalue="580"/>
+                        <attr name="misplaced.action.allowed" boolvalue="true"/>
+                    </file>
                 </folder>
             </folder>
         </folder>

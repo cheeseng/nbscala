@@ -120,6 +120,8 @@ import org.netbeans.modules.scala.core.ast.ScalaRootScope;
  * strange things to J2SE actions. E.g. compile-single.
  */
 class J2SEActionProvider implements ActionProvider {
+    
+    public static final String COMMAND_RUN_SCALATEST_FILE = "scalatest.run.file";
 
     // Commands available from J2SE project
     private static final String[] supportedActions = {
@@ -135,6 +137,7 @@ class J2SEActionProvider implements ActionProvider {
         COMMAND_TEST,
         COMMAND_TEST_SINGLE,
         COMMAND_DEBUG_TEST_SINGLE,
+        COMMAND_RUN_SCALATEST_FILE, 
         JavaProjectConstants.COMMAND_DEBUG_FIX,
         COMMAND_DEBUG_STEP_INTO,
         COMMAND_DELETE,
@@ -156,6 +159,7 @@ class J2SEActionProvider implements ActionProvider {
         COMMAND_TEST,
         COMMAND_TEST_SINGLE,
         COMMAND_DEBUG_TEST_SINGLE,
+        COMMAND_RUN_SCALATEST_FILE, 
         JavaProjectConstants.COMMAND_DEBUG_FIX,
         COMMAND_DEBUG_STEP_INTO,
     };
@@ -205,7 +209,8 @@ class J2SEActionProvider implements ActionProvider {
             COMMAND_RUN_SINGLE,
             COMMAND_DEBUG,
             COMMAND_DEBUG_SINGLE,
-            COMMAND_DEBUG_STEP_INTO
+            COMMAND_DEBUG_STEP_INTO, 
+            COMMAND_RUN_SCALATEST_FILE
         ));
 
         this.updateHelper = updateHelper;
@@ -402,6 +407,17 @@ class J2SEActionProvider implements ActionProvider {
         else if ( command.equals( COMMAND_DEBUG_TEST_SINGLE ) ) {
             FileObject[] files = findTestSourcesForSources(context);
             targetNames = setupDebugTestSingle(p, files);
+        }
+        else if ( command.equals(COMMAND_RUN_SCALATEST_FILE) ) {
+            FileObject[] files = findTestSources(context, false);
+            if (files != null)
+                targetNames = setupDebugScalaTestSingle(p, files);
+            else {
+                // "Please select a scala source file that contains ScalaTest suite."
+                NotifyDescriptor nd = new NotifyDescriptor.Message(NbBundle.getMessage(J2SEActionProvider.class, "LBL_Select_ScalaTest_File"), NotifyDescriptor.INFORMATION_MESSAGE);
+                DialogDisplayer.getDefault().notify(nd);
+                return null;
+            }
         }
         else if ( command.equals( JavaProjectConstants.COMMAND_DEBUG_FIX ) ) {
             FileObject[] files = findSources( context );
@@ -693,6 +709,16 @@ class J2SEActionProvider implements ActionProvider {
         p.setProperty("javac.includes", ActionUtils.antIncludesList(files, root)); // NOI18N
         return new String[] {"debug-test"}; // NOI18N
     }
+    
+    private String[] setupDebugScalaTestSingle(Properties p, FileObject[] files) {
+        FileObject[] testSrcPath = project.getTestSourceRoots().getRoots();
+        FileObject root = getRoot(testSrcPath, files[0]);
+        String path = FileUtil.getRelativePath(root, files[0]);
+        // Convert foo/FooTest.java -> foo.FooTest
+        p.setProperty("test.class", path.substring(0, path.length() - 6).replace('/', '.')); // NOI18N
+        p.setProperty("javac.includes", ActionUtils.antIncludesList(files, root)); // NOI18N
+        return new String[] {"debug-scalatest"}; // NOI18N
+    }
 
     public boolean isActionEnabled( String command, Lookup context ) {
         FileObject buildXml = findBuildXml();
@@ -718,6 +744,8 @@ class J2SEActionProvider implements ActionProvider {
             }
             fos = findTestSources(context, false);
             return fos != null && fos.length == 1;
+        } else if (command.equals(COMMAND_RUN_SCALATEST_FILE)) {
+            return true;
         } else {
             // other actions are global
             return true;
@@ -727,8 +755,7 @@ class J2SEActionProvider implements ActionProvider {
 
 
     // Private methods -----------------------------------------------------
-
-
+    
     private static final Pattern SRCDIRJAVA = Pattern.compile("\\.scala$"); // NOI18N
     private static final String SUBST = "Test.scala"; // NOI18N
     
